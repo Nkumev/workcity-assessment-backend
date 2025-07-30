@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../@client/prisma"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DB_URL")
+}
+
+model User {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  username String
+  email    String   @unique
+  password String
+  role     UserRole @default(USER)
+
+  projects Project[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Client {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  email    String @unique
+  phone    String @unique
+  address  String
+  industry String
+
+  projects Project[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Project {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  status      ProjectStatus @default(REQUESTED)
+  clientId    String        @db.ObjectId
+  managerId   String?       @db.ObjectId
+
+  client  Client @relation(fields: [clientId], references: [id])
+  manager User?  @relation(fields: [managerId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now())
+  completed DateTime?
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ProjectStatus {
+  REQUESTED
+  ACCEPTED
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+}
